@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>09 invisible ink</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .caption { font-size: 70px; }
 </style>
@@ -46,5 +47,24 @@
     </div>
   </div>
 </main>
+<script>
+// Chip swings in, the page flies up in 3D, a crosshair drags the capture box,
+// and the answer panel pops out of the selection while the answer streams in.
+WispAnim.slide((k) => {
+  k.punch();
+  k.chipIn(0.02);
+  k.stagger(k.words(".caption", true), 0.1, 0.035, (w, t) => k.pop(w, t, { from: 0.4, y: 40 }));
+  k.fly3d(".page", 0.14);
+  const end = k.drag(".sel", 0.46, 0.3);
+  // the faint answer bleeds onto the page, then the hand grabs it and drags it into place
+  k.A(".ink", [{ opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)" }], end + 0.04, 0.35, "out");
+  const grab = end + 0.42;
+  k.A(".ink", [{ transform: "translate(-110px, -12px)" }, { transform: "translate(0px, 0px)" }], grab + 0.08, 0.5, "inout");
+  k.A(".hand", [{ transform: "scale(0) rotate(-30deg)", opacity: 0 }, { transform: "scale(1) rotate(0deg)", opacity: 1 }], grab - 0.18, 0.24, "back");
+  k.add(".hand", [{ transform: "scale(1) rotate(0deg)" }, { transform: "scale(.86) rotate(-8deg)" }], grab, 0.08, "out");
+  k.add(".hand", [{ transform: "scale(1) rotate(0deg)" }, { transform: "scale(1.1628) rotate(8deg)" }], grab + 0.62, 0.12, "out");
+  k.A(".ink .ghost", [{ opacity: 0 }, { opacity: 1 }], grab - 0.1, 0.15);
+});
+</script>
 </body>
 </html>

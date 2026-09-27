@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>07 rewrite</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .sel { font-size: 66px; text-wrap: balance; }
   .answer { font-size: 66px; text-wrap: balance; }
@@ -27,5 +28,22 @@
     </div>
   </div>
 </main>
+<script>
+// Chip swings in, the page flies up in 3D, a crosshair drags the capture box,
+// and the answer panel pops out of the selection while the answer streams in.
+WispAnim.slide((k) => {
+  k.punch();
+  k.chipIn(0.02);
+  k.fly3d(".page", 0.05, { ry: -16 });
+  const bad = k.words(".sel").slice(0, 4); // "me and him was"
+  bad.forEach((w) => Object.assign(w.style, { textDecorationLine: "underline", textDecorationStyle: "wavy", textDecorationThickness: "4px", textUnderlineOffset: "10px" }));
+  k.stagger(bad, 0.28, 0.05, (w, t) => k.A(w, [{ textDecorationColor: "rgba(217,45,58,0)" }, { textDecorationColor: "rgba(217,45,58,1)" }], t, 0.15));
+  const end = k.drag(".sel", 0.36, 0.26);
+  k.panelIn(".panel", end + 0.04);
+  const fixed = k.stream(".answer", end + 0.16, 0.18).slice(0, 4); // "He and I were"
+  fixed.forEach((w) => Object.assign(w.style, { textDecorationLine: "underline", textDecorationThickness: "5px", textUnderlineOffset: "12px" }));
+  k.stagger(fixed, end + 0.42, 0.05, (w, t) => k.A(w, [{ textDecorationColor: "rgba(173,145,255,0)" }, { textDecorationColor: "rgba(173,145,255,1)" }], t, 0.15));
+});
+</script>
 </body>
 </html>

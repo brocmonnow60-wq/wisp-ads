@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>06 summarize</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .answer .li { padding-left: 0.9em; text-indent: -0.9em; text-wrap: balance; }
   .answer .b { color: var(--violet); display: inline-block; width: 0.9em; text-indent: 0; white-space: pre; }
@@ -24,5 +25,20 @@
     </div>
   </div>
 </main>
+<script>
+// Chip swings in, the page flies up in 3D, a crosshair drags the capture box,
+// and the answer panel pops out of the selection while the answer streams in.
+WispAnim.slide((k) => {
+  k.punch();
+  k.chipIn(0.02);
+  k.fly3d(".page", 0.05);
+  const end = k.drag(".sel", 0.34, 0.36);
+  k.panelIn(".panel", end + 0.04, { mode: "rise" });
+  const items = k.$$(".answer .li");
+  items.forEach((li) => (li.style.transformOrigin = "0 0"));
+  k.stagger(items, end + 0.22, 0.14, (li, t) => k.flip(li, t, { axis: "X", deg: -95, dur: 0.5 }));
+  k.stagger(k.$$(".answer .b"), end + 0.3, 0.14, (b, t) => k.pop(b, t, { from: 0, dur: 0.4 }));
+});
+</script>
 </body>
 </html>

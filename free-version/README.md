@@ -1,11 +1,15 @@
-# Wisp Free — TikTok launch ad (raw cut)
+# Wisp Free — TikTok launch ad
 
-Raw 30 s vertical ad announcing Wisp Free. Hard cuts only: no transitions, effects, music or audio.
-It gets finished in ChatCut.
+30 s vertical ad announcing Wisp Free, in two cuts that share the same slides and the same 13 cut points:
+
+- **Raw cut:** hard cuts only, no transitions, effects, music or audio. It gets finished in ChatCut.
+- **Animated cut:** every slide animates, with 3D motion throughout (details below). Still no audio.
 
 | Output | |
 |---|---|
-| `out/wisp-free-tiktok.mp4` | 1080×1920, 30 fps, exactly 30.00 s / 900 frames, H.264 High, yuv420p (BT.709), no audio track, keyframe on every cut |
+| `out/wisp-free-tiktok.mp4` | raw cut: 1080×1920, 30 fps, exactly 30.00 s / 900 frames, H.264 High, yuv420p (BT.709), no audio track, keyframe on every cut |
+| `out/wisp-free-tiktok-animated.mp4` | animated cut: same format, same frame-exact cut points |
+| `out/contact-sheet-animated.jpg` | the resting pose of every animated slide |
 | `out/png/*.png` | each slide as a 1080×1920 PNG |
 | `out/cuts.csv` | cut list with seconds, frame numbers and timecodes |
 | `out/contact-sheet.jpg` | all 14 slides at a glance |
@@ -36,8 +40,10 @@ The timing lives in `timeline.json`, along with the exact answer text for each d
 ```sh
 npm install                          # playwright + ffmpeg-static
 npx playwright install chromium      # first time only, if Chrome isn't installed yet
-npm run build:free                   # render PNGs, check layout, encode + verify MP4
+npm run build:free                   # raw cut: render PNGs, check layout, encode + verify MP4
 npm run build:free -- --png          # PNGs + checks only
+npm run build:free:animated          # animated cut: render every frame, check, encode + verify
+npm run build:free:animated -- --preview   # a few frames per slide as contact sheets (quick look)
 ```
 
 Edit the slides in `slides/*.html` (shared styles are in `slides/style.css`; `slides/icon.png` is the app icon from wispformac.com).
@@ -52,3 +58,28 @@ The build stops before encoding if any check fails. It checks that:
 - every decoded frame matches the PNG the timeline puts at that frame, so each cut lands on its exact frame.
 
 Fonts: Inter and JetBrains Mono (both OFL, in `../fonts`). Emoji come from the system emoji font.
+
+## Animated cut
+
+The same HTML slides are used for both cuts. Opened normally, a slide is the static design. Opened
+with `?anim`, `slides/anim.js` adds the motion, and `animate.mjs` scrubs each slide to the exact time
+of every frame (Web Animations API, paused and seeked). Every frame is reproducible, and the cuts land
+on the same frames as in the raw cut.
+
+- **Every slide:** a 3D field of drifting sparkles, a breathing glow, and a punch-in on the cut.
+- **Demo slides:** the mode chip swings in with a gloss sweep, and the page flies up in 3D. A crosshair
+  drags the dashed capture box, the answer panel pops out of the selection, and the answer streams in
+  word by word.
+- **Per-slide extras:**
+  - Rewrite: the grammar errors get red squiggles.
+  - Custom: the instruction types itself.
+  - Invisible Ink: the faint answer is grabbed and dragged into place.
+  - Hook, $0 and "want it ALL?": the big words are solid extruded 3D type.
+  - "want it ALL?": the six mode icons orbit in 3D.
+- **End slide:** the real 3D Wisp icon from wispformac.com (`slides/wisp3d.js`, ported from the site's
+  Three.js code so it runs off the video clock).
+
+The animated render runs the same layout checks as the raw build on each slide's resting pose
+(settled, mid-hold and last frame). It also requires every slide to finish its entrance with at least
+0.5 s left on screen, and checks that each slide's first and last frame sit on the timeline's cut
+frames in the final MP4.

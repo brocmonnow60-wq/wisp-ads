@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>02 mac</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .q { font-size: 150px; }
   .q .emoji { display: block; font-size: 230px; margin-top: 60px; line-height: 1; }
@@ -13,5 +14,16 @@
 <main class="safe center">
   <div class="h q">do you have a&nbsp;Mac? <span class="emoji">💻</span></div>
 </main>
+<script>
+// Words pop one by one, the laptop spins in and floats.
+WispAnim.slide((k) => {
+  k.punch();
+  const emoji = k.$(".q .emoji");
+  const ws = k.words(".q", true).filter((w) => !w.closest(".emoji"));
+  k.stagger(ws, 0, 0.07, (w, t, i) => k.pop(w, t, { from: 0.2, rot: i % 2 ? 8 : -8, y: 40 }));
+  k.A(emoji, [{ transform: `${k.P(900)} rotateY(-540deg) scale(.2)`, opacity: 0 }, { opacity: 1, offset: 0.15 }, { transform: `${k.P(900)} rotateY(0deg) scale(1)`, opacity: 1 }], 0.2, 0.6, "out");
+  k.idle(emoji, [{ transform: "translateY(-12px) rotate(-4deg)" }, { transform: "translateY(12px) rotate(4deg)" }], 0.9, 0.98);
+});
+</script>
 </body>
 </html>

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>12 free</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .zero {
     font-size: 560px;
@@ -27,5 +28,32 @@
     <span class="pill">15 answers a day</span>
   </div>
 </main>
+<script>
+// A solid 3D $0 flies out of the distance, a shockwave and sparkle burst hit, then the pills pop.
+WispAnim.slide((k) => {
+  k.punch();
+  const zero = k.extrude(".zero", { layers: 20, step: 2.6, from: "8d6cff", to: "1c1238" });
+  k.A(zero, [{ transform: `${k.P(1600)} translateZ(-2600px) rotateY(-160deg)` }, { transform: `${k.P(1600)} translateZ(0px) rotateY(0deg)` }], 0, 0.55, "back");
+  k.shake(".safe", 0.5, 16);
+  const r = zero.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const ring = document.createElement("i");
+  ring.dataset.deco = "";
+  ring.style.cssText = `position:absolute;left:${cx - 300}px;top:${cy - 300}px;width:600px;height:600px;border-radius:50%;border:8px solid #d6c9ff;box-shadow:0 0 60px #ad91ff, inset 0 0 60px #ad91ff;pointer-events:none;`;
+  document.body.insertBefore(ring, k.$(".safe"));
+  k.A(ring, [{ transform: "scale(.2)", opacity: 0 }, { opacity: 1, offset: 0.04 }, { transform: "scale(2.2)", opacity: 0 }], 0.48, 0.6, "out");
+  const rand = k.rng("burst");
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement("i");
+    s.dataset.deco = "";
+    const size = 18 + rand() * 30, ang = (i / 26) * Math.PI * 2 + rand() * 0.3, dist = 380 + rand() * 260;
+    s.style.cssText = `position:absolute;left:${cx - size / 2}px;top:${cy - size / 2}px;width:${size}px;height:${size}px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23d6c9ff' d='M50 0C53 36 64 47 100 50C64 53 53 64 50 100C47 64 36 53 0 50C36 47 47 36 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;`;
+    document.body.insertBefore(s, k.$(".safe"));
+    k.A(s, [{ transform: "translate(0px, 0px) scale(.2) rotate(0deg)", opacity: 0 }, { opacity: 1, offset: 0.04 }, { opacity: 1, offset: 0.6 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(1) rotate(${rand() * 360}deg)`, opacity: 0 }], 0.46, 0.7, "out");
+  }
+  k.stagger(k.words(".name", true), 0.58, 0.08, (w, t) => k.pop(w, t, { from: 0.3, y: 50 }));
+  k.stagger(k.$$(".pills .pill"), 0.78, 0.09, (p, t, i) => k.pop(p, t, { from: 0.2, rot: [-8, 6, -4][i] }));
+  k.idle(zero, [{ transform: "rotateY(-14deg) rotateX(6deg)" }, { transform: "rotateY(14deg) rotateX(-4deg)" }], 1.7, 0.6);
+});
+</script>
 </body>
 </html>

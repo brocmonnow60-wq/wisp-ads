@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>14 cta</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .logo { width: 400px; height: 400px; filter: drop-shadow(0 0 80px rgba(173, 145, 255, 0.40)); }
   .word { font-size: 180px; margin-top: 40px; letter-spacing: -0.05em; }
@@ -29,5 +30,39 @@
   <div class="url">wispformac.com</div>
   <div class="h comment">comment <span class="v">FREE</span><br>if you're trying&nbsp;it&nbsp;<span class="emoji">👇</span></div>
 </main>
+<script type="importmap">{ "imports": { "three": "../../node_modules/three/build/three.module.min.js", "three/addons/": "../../node_modules/three/examples/jsm/" } }</script>
+<script type="module">
+// In anim mode the flat icon is swapped for the real 3D Wisp icon from wispformac.com.
+if (WispAnim.enabled) WispAnim.wait((async () => {
+  const { createWisp } = await import("./wisp3d.js");
+  await document.fonts.ready;
+  const logo = document.querySelector(".logo");
+  const r = logo.getBoundingClientRect();
+  const cy = r.top + r.height / 2;
+  const cv = document.createElement("canvas");
+  cv.dataset.deco = "";
+  cv.style.cssText = `position:absolute;left:0;top:${cy - 570}px;width:1080px;height:1140px;pointer-events:none;`;
+  document.body.insertBefore(cv, document.querySelector(".safe"));
+  logo.style.visibility = "hidden";
+  const wisp = createWisp(cv, { fit: 18.8, speed: 1.6, particles: 220 });
+  WispAnim.onSeek((t) => wisp.render(t));
+})());
+</script>
+<script>
+// wisp drops in letter by letter, the URL pops with a shine, the 👇 bobs.
+WispAnim.slide((k) => {
+  k.punch();
+  k.stagger(k.chars(".word"), 0.42, 0.06, (c, t) => {
+    c.style.display = "inline-block";
+    k.A(c, [{ transform: "translateY(-220px) rotate(-20deg)", opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: "none", opacity: 1 }], t, 0.5, "bouncy");
+  });
+  k.pop(".url", 0.7, { from: 0.3 });
+  k.shine(".url", 1.05);
+  k.stagger(k.words(".comment", true), 0.88, 0.05, (w, t) => k.pop(w, t, { from: 0.3, y: 40 }));
+  const hand = k.$(".comment .emoji");
+  hand.style.display = "inline-block";
+  k.idle(hand, [{ transform: "translateY(-6px)" }, { transform: "translateY(14px)" }], 0.5, 1.3);
+});
+</script>
 </body>
 </html>

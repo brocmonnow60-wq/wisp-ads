@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>01 stop</title>
 <link rel="stylesheet" href="style.css">
+<script src="anim.js"></script>
 <style>
   .stop { font-size: 172px; }
   .went { font-size: 112px; margin-top: 70px; }
@@ -16,5 +17,23 @@
   <div class="h went">wisp just went</div>
   <div class="h free">FREE</div>
 </main>
+<script>
+// STOPPP slams in, the hand waves, FREE flips up in solid 3D and shakes the screen.
+WispAnim.slide((k) => {
+  const [stopWord] = k.words(".stop", true);
+  const hand = k.$(".stop .emoji");
+  hand.style.display = "inline-block";
+  k.slam(stopWord, -0.06, { from: 3.2, dur: 0.24 }); // already mid-slam on frame 0
+  k.shake(".safe", 0.2, 18);
+  k.A(hand, [{ transform: "scale(0) rotate(-70deg)", opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: "none", opacity: 1 }], 0.14, 0.55, "bouncy");
+  k.idle(hand, [{ transform: "rotate(-12deg)" }, { transform: "rotate(12deg)" }], 0.32, 0.62);
+  k.stagger(k.words(".went", true), 0.32, 0.06, (w, t) => k.pop(w, t, { from: 0.3, y: 50 }));
+  const free = k.extrude(".free", { layers: 16, step: 2.2, from: "ff6b6b", to: "3a0a10" });
+  k.showAt(free, 0.54);
+  k.A(free, [{ transform: `${k.P(1100)} translateZ(500px) rotateX(-70deg)` }, { transform: `${k.P(1100)} translateZ(0px) rotateX(0deg)` }], 0.54, 0.42, "spring");
+  k.shake(".safe", 0.7, 22);
+  k.idle(free, [{ transform: "rotateY(-10deg) rotateX(6deg)" }, { transform: "rotateY(10deg) rotateX(-4deg)" }], 1.1, 0.92);
+});
+</script>
 </body>
 </html>

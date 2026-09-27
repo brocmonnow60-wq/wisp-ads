@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>05 explain</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .answer { font-size: 54px; }
+</style>
+</head>
+<body>
+<main class="safe demo">
+  <div class="chips"><span class="chip"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.9 11.7c.6.5.9 1.1.9 1.8h6c0-.7.3-1.3.9-1.8A6.5 6.5 0 0 0 12 2.5z"/></svg>Explain <kbd>⌃5</kbd></span><span class="pill">full version</span></div>
+  <div class="stage">
+    <div class="page">
+      <div class="skel title" style="width: 44%"></div>
+      <div class="skel" style="width: 72%"></div>
+      <div class="skel" style="width: 88%"></div>
+      <div class="sel code"><div>average = total / len(scores)</div><div class="err">ZeroDivisionError: division by zero</div></div>
+      <div class="skel" style="width: 66%"></div>
+    </div>
+    <div class="panel">
+      <div class="label"><span class="spark">✦</span> wisp</div>
+      <div class="answer" data-answer><span class="code-inline">scores</span> is empty, so <span class="code-inline">len(scores)</span> is 0 and you can't divide by zero. Check the list has items first.</div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

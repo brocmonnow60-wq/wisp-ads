@@ -1,0 +1,31 @@
+{
+  "output": "out/wisp-free-tiktok.mp4",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 30,
+  "safeArea": { "left": 60, "right": 1020, "top": 180, "bottom": 1580 },
+  "slides": [
+    { "file": "01-stop.html", "start": 0.0, "end": 1.5 },
+    { "file": "02-mac.html", "start": 1.5, "end": 2.8 },
+    { "file": "03-answer.html", "start": 2.8, "end": 6.0,
+      "answer": "Mitosis makes 2 identical cells for growth and repair. Meiosis makes 4 cells with half the chromosomes, which become eggs or sperm." },
+    { "file": "04-translate.html", "start": 6.0, "end": 8.3,
+      "answer": "Plants use sunlight to turn water and carbon dioxide into sugar and oxygen." },
+    { "file": "05-explain.html", "start": 8.3, "end": 10.6,
+      "answer": "scores is empty, so len(scores) is 0 and you can't divide by zero. Check the list has items first." },
+    { "file": "06-summarize.html", "start": 10.6, "end": 12.9,
+      "answer": "• Work on one task for 25 focused minutes • Take a 5-minute break • After four rounds, take a 15–30 minute break" },
+    { "file": "07-rewrite.html", "start": 12.9, "end": 14.8,
+      "answer": "He and I were going to the store." },
+    { "file": "08-custom.html", "start": 14.8, "end": 17.0,
+      "answer": "Q: Where does photosynthesis happen? A: In the chloroplasts · Q: What gas is released? A: Oxygen · Q: What sugar is made? A: Glucose" },
+    { "file": "09-invisible-ink.html", "start": 17.0, "end": 19.5,
+      "answer": "Mitosis makes 2 identical cells for growth and repair. Meiosis makes 4 cells with half the chromosomes, which become eggs or sperm." },
+    { "file": "10-works-on-anything.html", "start": 19.5, "end": 21.3 },
+    { "file": "11-pick-your-ai.html", "start": 21.3, "end": 23.3 },
+    { "file": "12-free.html", "start": 23.3, "end": 25.8 },
+    { "file": "13-full-version.html", "start": 25.8, "end": 27.5 },
+    { "file": "14-cta.html", "start": 27.5, "end": 30.0 }
+  ]
+}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E1A2B"/>
+      <stop offset="1" stop-color="#110F18"/>
+    </linearGradient>
+  </defs>
+  <!-- dark rounded square -->
+  <rect x="8" y="8" width="496" height="496" rx="116" fill="url(#bg)" stroke="#AD91FF" stroke-opacity="0.35" stroke-width="4"/>
+  <!-- four rounded corner brackets -->
+  <g fill="none" stroke="#AD91FF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M122 196 V158 Q122 122 158 122 H196"/>
+    <path d="M316 122 H354 Q390 122 390 158 V196"/>
+    <path d="M390 316 V354 Q390 390 354 390 H316"/>
+    <path d="M196 390 H158 Q122 390 122 354 V316"/>
+  </g>
+  <!-- four-point sparkle star -->
+  <path fill="#AD91FF" d="M256 164 C264 222 290 248 348 256 C290 264 264 290 256 348 C248 290 222 264 164 256 C222 248 248 222 256 164 Z"/>
+</svg>

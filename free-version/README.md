@@ -40,7 +40,7 @@ npm run build:free                   # render PNGs, check layout, encode + verif
 npm run build:free -- --png          # PNGs + checks only
 ```
 
-Edit the slides in `slides/*.html` (shared styles are in `slides/style.css`, the logo is `slides/logo.svg`).
+Edit the slides in `slides/*.html` (shared styles are in `slides/style.css`; `slides/icon.png` is the app icon from wispformac.com).
 The build stops before encoding if any check fails. It checks that:
 
 - all text stays inside the safe area (x 60–1020, y 180–1580) and nothing overflows the canvas;

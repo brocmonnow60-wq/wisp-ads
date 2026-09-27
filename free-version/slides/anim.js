@@ -25,15 +25,18 @@
     pts[pts.length - 1] = "1 100%";
     return `linear(${pts.join(", ")})`;
   }
+  // Calm, filmic curves: fast start, long smooth settle, at most one small overshoot.
   const EASE = {
-    out: "cubic-bezier(.16, 1, .3, 1)",
-    in: "cubic-bezier(.7, 0, .84, 0)",
+    out: "cubic-bezier(.22, 1, .36, 1)", // ease-out quint
+    expo: "cubic-bezier(.16, 1, .3, 1)",
+    in: "cubic-bezier(.64, 0, .78, 0)",
     inout: "cubic-bezier(.65, 0, .35, 1)",
-    back: "cubic-bezier(.34, 1.56, .64, 1)",
+    sine: "cubic-bezier(.37, 0, .63, 1)",
+    back: "cubic-bezier(.34, 1.3, .64, 1)",
     linear: "linear",
-    spring: spring(0.5),
-    soft: spring(0.72),
-    bouncy: spring(0.36),
+    spring: spring(0.82), // ~1% overshoot
+    soft: spring(0.95),
+    bouncy: spring(0.62), // one gentle bump, no wobble
   };
 
   // Seeded random so every render of a slide is identical.
@@ -56,6 +59,20 @@
   function A(el, frames, at, dur, ease = "out", opts = {}) {
     el = $(el);
     if (!el) throw new Error("anim target not found");
+    // A fade rides along with a move but follows the clock, not the move's (front-loaded) curve,
+    // so big bright things never snap from invisible to visible in two or three frames.
+    const moves = frames.some((f) => "transform" in f || "filter" in f);
+    if (moves && !opts.composite && (EASE[ease] || ease) !== "linear" && frames.some((f) => "opacity" in f)) {
+      const fade = frames.filter((f) => "opacity" in f).map((f) => ({ opacity: f.opacity, offset: f.offset ?? null, easing: EASE.sine }));
+      fade[0].offset ??= 0;
+      fade[fade.length - 1].offset ??= 1;
+      el.animate(fade.map((f) => (f.offset === null ? { opacity: f.opacity, easing: f.easing } : f)), {
+        delay: at * 1000, duration: Math.max(1, dur * 1000), easing: "linear", fill: "both", ...opts,
+      });
+      frames = frames
+        .map(({ opacity, ...rest }) => rest)
+        .filter((f) => Object.keys(f).some((key) => key !== "offset" && key !== "easing"));
+    }
     return el.animate(frames, {
       delay: at * 1000,
       duration: Math.max(1, dur * 1000),
@@ -67,9 +84,18 @@
   // An extra layer of motion on top of whatever else animates the element (shake, idle float, …).
   const add = (el, frames, at, dur, ease = "linear", opts = {}) =>
     A(el, frames, at, dur, ease, { fill: "forwards", composite: "add", ...opts });
-  // Endless back-and-forth idle motion that starts at `at`.
-  const idle = (el, frames, period, at = 0, opts = {}) =>
-    A(el, frames, at, period / 2, "inout", { fill: "forwards", composite: "add", iterations: Infinity, direction: "alternate", ...opts });
+  // Gentle idle sway between two poses. It starts at rest (no jump) and eases through every turn.
+  // Poses are transforms without scale(), e.g. "rotateY(-8deg) translateY(4px)".
+  function idle(el, [a, b], period, at = 0, halves = 12) {
+    const rest = a.replace(/-?\d*\.?\d+(deg|px|%)/g, "0$1");
+    const frames = [{ transform: rest, easing: EASE.sine }];
+    const total = 0.25 + halves * 0.5;
+    for (let i = 0; i < halves; i++) {
+      frames.push({ transform: i % 2 ? b : a, offset: (0.25 + i * 0.5) / total, easing: EASE.sine });
+    }
+    frames.push({ transform: halves % 2 ? b : a, offset: 1 });
+    return A(el, frames, at, period * total, "linear", { fill: "forwards", composite: "add", id: "idle" });
+  }
   // Hide until `at` (visibility doesn't flatten 3D, unlike opacity).
   const showAt = (el, at) => A(el, [{ visibility: "hidden" }, { visibility: "visible" }], at, 0.001, "linear");
 
@@ -101,22 +127,23 @@
   const chars = (el) => split(el, "char");
 
   // ---------- building blocks ----------
-  const pop = (el, at, { from = 0.2, rot = 0, y = 0, dur = 0.5, ease = "spring" } = {}) =>
+  // Opacity always fades over a good share of the move, so nothing blinks into existence.
+  const pop = (el, at, { from = 0.6, rot = 0, y = 24, dur = 0.55, ease = "spring" } = {}) =>
     A(el, [
       { transform: `translateY(${y}px) scale(${from}) rotate(${rot}deg)`, opacity: 0 },
-      { opacity: 1, offset: 0.2 },
-      { transform: "none", opacity: 1 },
+      { opacity: 1, offset: 0.45 },
+      { transform: "translateY(0px) scale(1) rotate(0deg)", opacity: 1 },
     ], at, dur, ease);
 
-  const slam = (el, at, { from = 2.6, dur = 0.26, blur = 14 } = {}) =>
+  const slam = (el, at, { from = 1.7, dur = 0.36, blur = 10 } = {}) =>
     A(el, [
       { transform: `scale(${from})`, opacity: 0, filter: `blur(${blur}px)` },
-      { opacity: 1, offset: 0.35 },
+      { opacity: 1, offset: 0.3 },
       { transform: "scale(1)", opacity: 1, filter: "blur(0px)" },
-    ], at, dur, "in");
+    ], at, dur, "out");
 
-  const rise = (el, at, { y = 70, dur = 0.45, ease = "spring" } = {}) =>
-    A(el, [{ transform: `translateY(${y}px)`, opacity: 0 }, { opacity: 1, offset: 0.25 }, { transform: "none", opacity: 1 }], at, dur, ease);
+  const rise = (el, at, { y = 44, dur = 0.55, ease = "spring" } = {}) =>
+    A(el, [{ transform: `translateY(${y}px)`, opacity: 0 }, { opacity: 1, offset: 0.5 }, { transform: "translateY(0px)", opacity: 1 }], at, dur, ease);
 
   const stagger = (els, at, step, fn) => els.forEach((e, i) => fn(e, at + i * step, i));
 
@@ -129,35 +156,34 @@
         { opacity: 0, textShadow: "0 0 22px rgba(173,145,255,1)" },
         { opacity: 1, textShadow: "0 0 18px rgba(173,145,255,.9)", offset: 0.3 },
         { opacity: 1, textShadow: "0 0 0 rgba(173,145,255,0)" },
-      ], at + i * step, 0.28, "out"));
+      ], at + i * step, 0.32, "out"));
     return ws;
   };
 
   // A card that flies up out of the screen in 3D.
-  const fly3d = (el, at, { dur = 0.6, rx = 42, ry = -8, y = 300, z = -300 } = {}) =>
+  const fly3d = (el, at, { dur = 0.75, rx = 22, ry = -5, y = 150, z = -180 } = {}) =>
     A(el, [
       { transform: `${P(1600)} translate3d(0, ${y}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg)`, opacity: 0 },
-      { opacity: 1, offset: 0.25 },
+      { opacity: 1, offset: 0.4 },
       { transform: `${P(1600)} translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg)`, opacity: 1 },
     ], at, dur, "spring");
 
   // 3D flip around an axis (hinged on an edge via transform-origin set by the caller).
-  const flip = (el, at, { axis = "X", deg = -90, dur = 0.55, ease = "spring", persp = 1200 } = {}) =>
+  const flip = (el, at, { axis = "X", deg = -60, dur = 0.55, ease = "spring", persp = 1200 } = {}) =>
     A(el, [
       { transform: `${P(persp)} rotate${axis}(${deg}deg)`, opacity: 0 },
-      { opacity: 1, offset: 0.2 },
+      { opacity: 1, offset: 0.45 },
       { transform: `${P(persp)} rotate${axis}(0deg)`, opacity: 1 },
     ], at, dur, ease);
 
-  const shake = (el, at, amp = 14, dur = 0.24) => {
-    const f = [];
-    const r = rng("shake" + at);
-    for (let i = 0; i <= 8; i++) {
-      const k = (1 - i / 8) * amp;
-      f.push({ transform: i === 8 ? "translate(0px, 0px)" : `translate(${((r() - 0.5) * 2 * k).toFixed(1)}px, ${((r() - 0.5) * 2 * k).toFixed(1)}px)` });
-    }
-    return add(el, f, at, dur);
-  };
+  // A smooth camera "thud" on impact: one push and a soft settle (no random jitter).
+  const kick = (el, at, amp = 10, dur = 0.4) =>
+    add(el, [
+      { transform: "translateY(0px) scale(1)", easing: EASE.out },
+      { transform: `translateY(${amp}px) scale(${(1 + amp * 0.0014).toFixed(4)})`, offset: 0.22, easing: EASE.sine },
+      { transform: `translateY(${(-amp * 0.25).toFixed(1)}px) scale(1)`, offset: 0.6, easing: EASE.sine },
+      { transform: "translateY(0px) scale(1)" },
+    ], at, dur);
 
   // A glossy light sweep across a pill/chip/tile.
   function shine(el, at, dur = 0.55) {
@@ -212,10 +238,10 @@
     cur.innerHTML = '<svg viewBox="0 0 64 64"><g stroke-linecap="round"><path d="M32 4v22M32 38v22M4 32h22M38 32h22" stroke="#fff" stroke-width="9"/><path d="M32 4v22M32 38v22M4 32h22M38 32h22" stroke="#15121D" stroke-width="4"/></g><circle cx="32" cy="32" r="3.5" fill="#15121D" stroke="#fff" stroke-width="2"/></svg>';
     sel.append(cur);
     const w = sel.offsetWidth, h = sel.offsetHeight;
-    A(cur, [{ transform: "scale(.4)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], at - 0.12, 0.12, "out");
+    A(cur, [{ transform: "scale(.6)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], at - 0.16, 0.16, "out");
     A(hl, [{ clipPath: "inset(0 100% 100% 0 round 18px)" }, { clipPath: "inset(0 0% 0% 0 round 18px)" }], at, dur, "inout");
     add(cur, [{ transform: "translate(0px, 0px)" }, { transform: `translate(${w}px, ${h}px)` }], at, dur, EASE.inout);
-    A(cur, [{ opacity: 1 }, { opacity: 0 }], at + dur + 0.12, 0.15, "out", { fill: "forwards" });
+    A(cur, [{ opacity: 1 }, { opacity: 0 }], at + dur + 0.1, 0.22, "out", { fill: "forwards" });
     return at + dur;
   }
 
@@ -223,20 +249,20 @@
   function panelIn(panel, at, { dur = 0.5, mode = "pop" } = {}) {
     panel = $(panel);
     const from = {
-      pop: `${P(1400)} translateY(-50px) rotateX(-38deg) rotateY(0deg) scale(.7)`,
-      flipY: `${P(1400)} translateY(0px) rotateX(0deg) rotateY(85deg) scale(1)`,
-      rise: `${P(1400)} translateY(260px) rotateX(55deg) rotateY(0deg) scale(.9)`,
+      pop: `${P(1400)} translateY(-24px) rotateX(-18deg) rotateY(0deg) scale(.94)`,
+      flipY: `${P(1400)} translateY(0px) rotateX(0deg) rotateY(38deg) scale(.97)`,
+      rise: `${P(1400)} translateY(110px) rotateX(22deg) rotateY(0deg) scale(.96)`,
     }[mode];
     panel.style.transformOrigin = mode === "flipY" ? "0px 50%" : "111px 0px";
     A(panel, [
       { transform: from, opacity: 0 },
-      { opacity: 1, offset: 0.25 },
+      { opacity: 1, offset: 0.4 },
       { transform: `${P(1400)} translateY(0px) rotateX(0deg) rotateY(0deg) scale(1)`, opacity: 1 },
-    ], at, dur, "spring");
+    ], at, dur + 0.1, "spring");
     const spark = $(".spark", panel);
     if (spark) {
       spark.style.display = "inline-block";
-      A(spark, [{ transform: "rotate(-200deg) scale(0)" }, { transform: "rotate(0deg) scale(1)" }], at + 0.08, 0.5, "back");
+      A(spark, [{ transform: "rotate(-120deg) scale(.3)", opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: "rotate(0deg) scale(1)", opacity: 1 }], at + 0.08, 0.6, "out");
     }
   }
 
@@ -246,25 +272,25 @@
     if (!chip) return;
     chip.style.transformOrigin = "0 50%";
     A(chip, [
-      { transform: `${P(900)} translateX(-120px) rotateY(75deg)`, opacity: 0 },
-      { opacity: 1, offset: 0.25 },
-      { transform: `${P(900)} translateX(0) rotateY(0deg)`, opacity: 1 },
-    ], at, 0.5, "spring");
+      { transform: `${P(900)} translateX(-50px) rotateY(32deg)`, opacity: 0 },
+      { opacity: 1, offset: 0.4 },
+      { transform: `${P(900)} translateX(0px) rotateY(0deg)`, opacity: 1 },
+    ], at, 0.65, "spring");
     const kbd = $(".chip kbd");
-    if (kbd) { kbd.style.display = "inline-block"; pop(kbd, at + 0.16, { from: 0, rot: -20 }); }
+    if (kbd) { kbd.style.display = "inline-block"; pop(kbd, at + 0.14, { from: 0.5, y: 0 }); }
     const icon = $(".chip .icon");
-    if (icon) A(icon, [{ transform: "rotate(-90deg) scale(0)" }, { transform: "none" }], at + 0.1, 0.45, "back");
-    shine(chip, at + 0.45);
+    if (icon) A(icon, [{ transform: "rotate(-60deg) scale(.5)", opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: "rotate(0deg) scale(1)", opacity: 1 }], at + 0.08, 0.55, "out");
+    shine(chip, at + 0.5, 0.65);
     const pill = $(".chips .pill");
     if (pill) {
       pill.style.transformOrigin = "0 50%";
-      A(pill, [{ transform: `${P(900)} rotateY(-80deg) translateX(40px)`, opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: `${P(900)} rotateY(0deg)`, opacity: 1 }], at + 0.22, 0.5, "spring");
+      A(pill, [{ transform: `${P(900)} rotateY(-40deg) translateX(24px)`, opacity: 0 }, { opacity: 1, offset: 0.45 }, { transform: `${P(900)} rotateY(0deg) translateX(0px)`, opacity: 1 }], at + 0.2, 0.6, "spring");
     }
   }
 
   // Whole scene punches in on the cut.
   const punch = (at = 0) =>
-    A(".safe", [{ transform: "scale(1.07)", filter: "blur(10px)", opacity: 0.35 }, { transform: "scale(1)", filter: "blur(0px)", opacity: 1 }], at, 0.22, "out");
+    A(".safe", [{ transform: "scale(1.035)", filter: "blur(5px)", opacity: 0.55 }, { transform: "scale(1)", filter: "blur(0px)", opacity: 1 }], at, 0.3, "out");
 
   // ---------- background: drifting glow + a 3D field of sparkles ----------
   const STAR = (fill) =>
@@ -325,7 +351,7 @@
   const api = {
     enabled,
     EASE, spring, rng, $, $$, P, A, add, idle, showAt, words, chars, split,
-    pop, slam, rise, stagger, stream, fly3d, flip, shake, shine, extrude, drag, panelIn, chipIn, punch,
+    pop, slam, rise, stagger, stream, fly3d, flip, kick, shine, extrude, drag, panelIn, chipIn, punch,
     slide(fn) { specs.push(fn); },
     wait(p) { pending.push(p); },
     onSeek(fn) { renderers.push(fn); },
@@ -351,7 +377,7 @@
       let end = 0;
       for (const a of document.getAnimations()) {
         const tm = a.effect.getComputedTiming();
-        if (tm.iterations === Infinity) continue;
+        if (tm.iterations === Infinity || a.id === "idle") continue;
         if (a.effect.target?.closest?.("#fx")) continue;
         end = Math.max(end, tm.endTime / 1000);
       }

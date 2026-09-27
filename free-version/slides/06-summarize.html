@@ -26,18 +26,18 @@
   </div>
 </main>
 <script>
-// Chip swings in, the page flies up in 3D, a crosshair drags the capture box,
-// and the answer panel pops out of the selection while the answer streams in.
+// Chip swings in, the page floats up in 3D, a crosshair drags the capture box,
+// and the answer panel opens out of the selection while the answer streams in.
 WispAnim.slide((k) => {
   k.punch();
   k.chipIn(0.02);
   k.fly3d(".page", 0.05);
-  const end = k.drag(".sel", 0.34, 0.36);
+  const end = k.drag(".sel", 0.3, 0.38);
   k.panelIn(".panel", end + 0.04, { mode: "rise" });
   const items = k.$$(".answer .li");
   items.forEach((li) => (li.style.transformOrigin = "0 0"));
-  k.stagger(items, end + 0.22, 0.14, (li, t) => k.flip(li, t, { axis: "X", deg: -95, dur: 0.5 }));
-  k.stagger(k.$$(".answer .b"), end + 0.3, 0.14, (b, t) => k.pop(b, t, { from: 0, dur: 0.4 }));
+  k.stagger(items, end + 0.2, 0.14, (li, t) => k.flip(li, t));
+  k.stagger(k.$$(".answer .b"), end + 0.24, 0.14, (b, t) => k.pop(b, t, { from: 0.4, y: 0 }));
 });
 </script>
 </body>

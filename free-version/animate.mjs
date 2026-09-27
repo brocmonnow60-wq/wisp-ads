@@ -7,6 +7,7 @@
 //   … -- --only 03,12                            limit to some slides
 //
 // WORKERS=n sets how many slides render in parallel (default 3).
+// SUBFRAMES=n sets the motion-blur samples per frame (default 4, 1 = no motion blur).
 
 import { chromium } from "playwright";
 import ffmpegStatic from "ffmpeg-static";
@@ -27,6 +28,10 @@ const WORKERS = Number(process.env.WORKERS || 3);
 const preview = process.argv.includes("--preview");
 const onlyArg = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1].split(",") : null;
 const MIN_HOLD = 0.5; // every slide must sit still (apart from idle loops) for at least this long
+// Motion blur: every output frame averages SUB renders spread over half a frame (a 180° shutter).
+const SUB = Number(process.env.SUBFRAMES || 4);
+const SHUTTER = 0.5;
+const subTimes = (f) => Array.from({ length: SUB }, (_, k) => (f + ((k + 0.5) / SUB - 0.5) * SHUTTER) / fps);
 
 const outDir = join(here, "out");
 const videoPath = join(outDir, "wisp-free-tiktok-animated.mp4");
@@ -64,10 +69,13 @@ async function openSlide(s) {
   page.on("requestfailed", (r) => fail(`${s.name}: failed to load ${r.url()}`));
   await page.goto(`${base}${s.file}?anim`, { waitUntil: "load" });
   await page.evaluate(() => WispAnim.start());
+  page.cdp = await page.context().newCDPSession(page);
   return page;
 }
 const seek = (page, t) => page.evaluate((t) => WispAnim.seek(t), t);
-const shot = (page) => page.screenshot({ type: "png", clip: { x: 0, y: 0, width: W, height: H } });
+// Lossless PNG, with Chrome's faster compression setting.
+const shot = async (page) =>
+  Buffer.from((await page.cdp.send("Page.captureScreenshot", { format: "png", optimizeForSpeed: true, clip: { x: 0, y: 0, width: W, height: H, scale: 1 } })).data, "base64");
 
 // The resting pose of each slide (after its entrance) must pass the same checks as the raw slides.
 async function checkSlide(page, s) {
@@ -89,6 +97,7 @@ const run = (args, opts = {}) => {
   return r.stderr;
 };
 const toVideo = "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p";
+const blend = SUB > 1 ? `tmix=frames=${SUB},select='eq(mod(n\\,${SUB})\\,${SUB - 1})',setpts=N/(${fps}*TB)` : "null";
 
 const work = mkdtempSync(join(tmpdir(), "wisp-anim-"));
 
@@ -116,11 +125,11 @@ async function renderSlide(s) {
     return;
   }
 
-  // Full render: pipe every frame into its own x264 segment.
+  // Full render: pipe every sub-frame into its own x264 segment; ffmpeg averages each group of SUB.
   s.segment = join(work, `${s.name}.mp4`);
   const enc = spawn(ffmpeg, ["-hide_banner", "-loglevel", "error", "-y",
-    "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps), "-i", "-",
-    "-vf", toVideo, "-frames:v", String(s.frames), "-r", String(fps),
+    "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps * SUB), "-i", "-",
+    "-vf", `${blend},${toVideo}`, "-frames:v", String(s.frames), "-r", String(fps),
     "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-profile:v", "high", "-g", String(fps),
     "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
     "-an", s.segment], { stdio: ["pipe", "ignore", "pipe"] });
@@ -129,11 +138,18 @@ async function renderSlide(s) {
   const done = new Promise((ok, no) => enc.on("close", (code) => (code === 0 ? ok() : no(new Error(`${s.name}: ffmpeg exited ${code}\n${err}`)))));
   const t0 = Date.now();
   for (let f = 0; f < s.frames; f++) {
-    await seek(page, f / fps);
-    const buf = await shot(page);
-    if (f === 0) writeFileSync(join(work, `${s.name}-first.png`), buf);
-    if (f === s.frames - 1) writeFileSync(join(work, `${s.name}-last.png`), buf);
-    if (!enc.stdin.write(buf)) await new Promise((ok) => enc.stdin.once("drain", ok));
+    const times = subTimes(f);
+    for (let k = 0; k < times.length; k++) {
+      await seek(page, times[k]);
+      const buf = await shot(page);
+      if (f === 0) writeFileSync(join(work, `${s.name}-first-${k}.png`), buf);
+      if (f === s.frames - 1) writeFileSync(join(work, `${s.name}-last-${k}.png`), buf);
+      if (!enc.stdin.write(buf)) await new Promise((ok) => enc.stdin.once("drain", ok));
+    }
+  }
+  // the reference frames for the cut check get the same blend
+  for (const which of ["first", "last"]) {
+    run(["-y", "-loglevel", "error", "-framerate", String(fps * SUB), "-i", join(work, `${s.name}-${which}-%d.png`), "-vf", blend, "-frames:v", "1", join(work, `${s.name}-${which}.png`)]);
   }
   enc.stdin.end();
   await done;

@@ -27,24 +27,24 @@
   </div>
 </main>
 <script>
-// Chip swings in, the page flies up in 3D, a crosshair drags the capture box,
-// and the answer panel pops out of the selection while the answer streams in.
+// Chip swings in, the page floats up in 3D, a crosshair drags the capture box,
+// and the answer panel opens out of the selection while the answer streams in.
 WispAnim.slide((k) => {
   k.punch();
   k.chipIn(0.02);
   k.fly3d(".page", 0.05);
-  const end = k.drag(".sel", 0.24, 0.26);
-  k.rise(".instruction", end + 0.02, { y: 70, dur: 0.4 });
+  const end = k.drag(".sel", 0.24, 0.28);
+  k.rise(".instruction", end + 0.02, { dur: 0.45 });
   const typed = k.chars(".instruction > span:first-child");
-  const typeAt = end + 0.08, typeFor = 0.22;
+  const typeAt = end + 0.08, typeFor = 0.24;
   k.stagger(typed, typeAt, typeFor / typed.length, (c, t) => k.A(c, [{ opacity: 0 }, { opacity: 1 }], t, 0.001, "linear"));
   k.A(".instruction .caret", [{ opacity: 1 }, { opacity: 0 }], 0, 0.25, "steps(1, end)", { iterations: Infinity, direction: "alternate" });
   const enter = typeAt + typeFor + 0.04;
-  k.A(".instruction .ret", [{ transform: "scale(1)" }, { transform: "scale(.78)" }, { transform: "scale(1)" }], enter, 0.18, "out");
+  k.A(".instruction .ret", [{ transform: "scale(1)", easing: k.EASE.out }, { transform: "scale(.84)", offset: 0.35, easing: k.EASE.sine }, { transform: "scale(1)" }], enter, 0.26, "linear");
   k.panelIn(".panel", enter + 0.05, { dur: 0.45 });
   const lines = k.$$(".answer .card-q, .answer .card-a");
   lines.forEach((el) => (el.style.transformOrigin = "0 50%"));
-  k.stagger(lines, enter + 0.14, 0.045, (el, t) => k.flip(el, t, { axis: "X", deg: -90, dur: 0.36 }));
+  k.stagger(lines, enter + 0.14, 0.045, (el, t) => k.flip(el, t, { deg: -50, dur: 0.42 }));
 });
 </script>
 </body>

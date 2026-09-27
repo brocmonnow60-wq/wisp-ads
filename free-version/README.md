@@ -79,6 +79,15 @@ on the same frames as in the raw cut.
 - **End slide:** the real 3D Wisp icon from wispformac.com (`slides/wisp3d.js`, ported from the site's
   Three.js code so it runs off the video clock).
 
+To keep the motion smooth at 30 fps:
+
+- **Easing:** curves ease out with at most one small overshoot, so nothing wobbles.
+- **Pace:** moves are short and every fade takes several frames.
+- **Impacts:** they get a single smooth camera kick instead of a shake.
+- **Idle sways:** they start from rest and ease through every turn.
+- **Motion blur:** each video frame is the average of 4 renders spread across half a frame (a
+  180° shutter). `SUBFRAMES=1` turns it off for quick test renders.
+
 The animated render runs the same layout checks as the raw build on each slide's resting pose
 (settled, mid-hold and last frame). It also requires every slide to finish its entrance with at least
 0.5 s left on screen, and checks that each slide's first and last frame sit on the timeline's cut

@@ -20,18 +20,18 @@
   <div class="h price">for <span class="v">$15</span> once</div>
 </main>
 <script>
-// "want it" drops, a solid 3D ALL? slams in, the price stamps down, every mode orbits below.
+// "want it" drops in, a solid 3D ALL? lands with a thud, the price stamps down, every mode orbits below.
 WispAnim.slide((k) => {
   k.punch();
-  k.stagger(k.words(".want", true), 0, 0.08, (w, t) => k.A(w, [{ transform: "translateY(-160px)", opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: "none", opacity: 1 }], t, 0.45, "bouncy"));
+  k.stagger(k.words(".want", true), 0, 0.08, (w, t) => k.A(w, [{ transform: "translateY(-70px)", opacity: 0 }, { opacity: 1, offset: 0.45 }, { transform: "translateY(0px)", opacity: 1 }], t, 0.5, "bouncy"));
   const all = k.extrude(".all", { layers: 16, step: 2.4, from: "8d6cff", to: "1c1238" });
-  k.showAt(all, 0.14);
-  k.A(all, [{ transform: `${k.P(1200)} translateZ(700px) rotateX(60deg)` }, { transform: `${k.P(1200)} translateZ(0px) rotateX(0deg)` }], 0.14, 0.36, "spring");
-  k.shake(".safe", 0.32, 20);
-  k.idle(all, [{ transform: "rotateY(-12deg) rotateX(5deg)" }, { transform: "rotateY(12deg) rotateX(-4deg)" }], 1.3, 0.55);
-  k.stagger(k.words(".every", true), 0.4, 0.05, (w, t) => k.pop(w, t, { from: 0.3, y: 40 }));
-  k.A(".price", [{ transform: "scale(2.2) rotate(-10deg)", opacity: 0 }, { opacity: 1, offset: 0.3 }, { transform: "none", opacity: 1 }], 0.6, 0.34, "back");
-  k.shake(".safe", 0.78, 10);
+  k.A(".all", [{ opacity: 0 }, { opacity: 1 }], 0.12, 0.18, "out");
+  k.A(all, [{ transform: `${k.P(1200)} translateZ(-460px) rotateX(36deg)` }, { transform: `${k.P(1200)} translateZ(0px) rotateX(0deg)` }], 0.12, 0.5, "spring");
+  k.kick(".safe", 0.3, 12);
+  k.idle(all, ["rotateY(-9deg) rotateX(4deg)", "rotateY(9deg) rotateX(-3deg)"], 1.6, 0.62);
+  k.stagger(k.words(".every", true), 0.36, 0.06, (w, t) => k.pop(w, t));
+  k.A(".price", [{ transform: "scale(1.45) rotate(-6deg)", opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: "scale(1) rotate(0deg)", opacity: 1 }], 0.56, 0.42, "back");
+  k.kick(".safe", 0.7, 6);
   // the six mode icons, orbiting in 3D under the price
   const icons = [
     '<path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h8A2.5 2.5 0 0 1 16 6.5v4a2.5 2.5 0 0 1-2.5 2.5H9l-3.5 3v-3A2.5 2.5 0 0 1 3 10.5z"/><path d="M16 9h2.5a2.5 2.5 0 0 1 2.5 2.5v4a2.5 2.5 0 0 1-2.5 2.5H18v3l-3.5-3h-3A2.5 2.5 0 0 1 9 15.5V15"/>',
@@ -54,8 +54,8 @@ WispAnim.slide((k) => {
     spin.append(it);
   });
   document.body.append(stage);
-  k.A(spin, [{ transform: "rotateX(-12deg) rotateY(0deg)" }, { transform: "rotateX(-12deg) rotateY(-360deg)" }], 0, 4, "linear", { iterations: Infinity });
-  k.A(stage, [{ transform: "scale(0)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], 0.7, 0.5, "spring");
+  k.A(spin, [{ transform: "rotateX(-12deg) rotateY(0deg)" }, { transform: "rotateX(-12deg) rotateY(-360deg)" }], 0, 6, "linear", { iterations: Infinity });
+  k.A(stage, [{ transform: "translateY(60px) scale(.8)", opacity: 0 }, { opacity: 1, offset: 0.45 }, { transform: "translateY(0px) scale(1)", opacity: 1 }], 0.6, 0.55, "spring");
 });
 </script>
 </body>

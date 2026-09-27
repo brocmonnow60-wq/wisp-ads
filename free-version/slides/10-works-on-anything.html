@@ -34,20 +34,20 @@
   </div>
 </main>
 <script>
-// Headline pops, tiles flip up in 3D one by one, the last tile slams in.
+// Headline pops, tiles tip up in 3D one by one, the last tile lands with a thud.
 WispAnim.slide((k) => {
   k.punch();
-  k.stagger(k.words(".headline", true), 0, 0.07, (w, t, i) => k.pop(w, t, { from: 0.2, y: 60, rot: i ? 6 : -6 }));
+  k.stagger(k.words(".headline", true), 0, 0.08, (w, t, i) => k.pop(w, t, { rot: i ? 4 : -4 }));
   const tiles = k.$$(".tile:not(.full)");
   tiles.forEach((el) => (el.style.transformOrigin = "50% 100%"));
-  k.stagger(tiles, 0.2, 0.07, (el, t) =>
-    k.A(el, [{ transform: `${k.P(1200)} rotateX(-95deg) translateZ(-60px)`, opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: `${k.P(1200)} rotateX(0deg) translateZ(0px)`, opacity: 1 }], t, 0.55, "spring"));
-  k.stagger(k.$$(".tile .icon"), 0.34, 0.07, (el, t) => k.pop(el, t, { from: 0, rot: -30 }));
+  k.stagger(tiles, 0.18, 0.07, (el, t) =>
+    k.A(el, [{ transform: `${k.P(1200)} translateY(40px) rotateX(-55deg)`, opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: `${k.P(1200)} translateY(0px) rotateX(0deg)`, opacity: 1 }], t, 0.6, "spring"));
+  k.stagger(k.$$(".tile .icon"), 0.3, 0.07, (el, t) => k.pop(el, t, { from: 0.5, rot: -20, y: 0 }));
   const full = k.$(".tile.full");
-  k.slam(full, 0.6, { from: 1.6, dur: 0.22, blur: 8 });
-  k.shake(".safe", 0.82, 10);
-  k.shine(full, 0.8, 0.42);
-  tiles.forEach((el, i) => k.idle(el, [{ transform: "rotateX(5deg) rotateY(-5deg)" }, { transform: "rotateX(-5deg) rotateY(5deg)" }], 1.4 + i * 0.25, 0.95));
+  k.slam(full, 0.56, { from: 1.25, dur: 0.36, blur: 6 });
+  k.kick(".safe", 0.66, 8);
+  k.shine(full, 0.8, 0.45);
+  tiles.forEach((el, i) => k.idle(el, ["rotateX(4deg) rotateY(-4deg)", "rotateX(-4deg) rotateY(4deg)"], 2 + i * 0.2, 0.95));
 });
 </script>
 </body>

@@ -44,7 +44,7 @@ if (WispAnim.enabled) WispAnim.wait((async () => {
   cv.style.cssText = `position:absolute;left:0;top:${cy - 570}px;width:1080px;height:1140px;pointer-events:none;`;
   document.body.insertBefore(cv, document.querySelector(".safe"));
   logo.style.visibility = "hidden";
-  const wisp = createWisp(cv, { fit: 18.8, speed: 1.6, particles: 220 });
+  const wisp = createWisp(cv, { fit: 18.8, speed: 1.4, particles: 220 });
   WispAnim.onSeek((t) => wisp.render(t));
 })());
 </script>
@@ -52,16 +52,16 @@ if (WispAnim.enabled) WispAnim.wait((async () => {
 // wisp drops in letter by letter, the URL pops with a shine, the 👇 bobs.
 WispAnim.slide((k) => {
   k.punch();
-  k.stagger(k.chars(".word"), 0.42, 0.06, (c, t) => {
+  k.stagger(k.chars(".word"), 0.4, 0.07, (c, t) => {
     c.style.display = "inline-block";
-    k.A(c, [{ transform: "translateY(-220px) rotate(-20deg)", opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: "none", opacity: 1 }], t, 0.5, "bouncy");
+    k.A(c, [{ transform: "translateY(-90px) rotate(-8deg)", opacity: 0 }, { opacity: 1, offset: 0.45 }, { transform: "translateY(0px) rotate(0deg)", opacity: 1 }], t, 0.6, "bouncy");
   });
-  k.pop(".url", 0.7, { from: 0.3 });
-  k.shine(".url", 1.05);
-  k.stagger(k.words(".comment", true), 0.88, 0.05, (w, t) => k.pop(w, t, { from: 0.3, y: 40 }));
+  k.pop(".url", 0.68);
+  k.shine(".url", 1.05, 0.65);
+  k.stagger(k.words(".comment", true), 0.86, 0.06, (w, t) => k.pop(w, t));
   const hand = k.$(".comment .emoji");
   hand.style.display = "inline-block";
-  k.idle(hand, [{ transform: "translateY(-6px)" }, { transform: "translateY(14px)" }], 0.5, 1.3);
+  k.idle(hand, ["translateY(-8px)", "translateY(8px)"], 0.9, 1.3);
 });
 </script>
 </body>
